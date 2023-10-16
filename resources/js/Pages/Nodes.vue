@@ -1,6 +1,12 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import {Head, Link, useForm} from '@inertiajs/vue3';
+import {ref} from "vue";
+import {reactive} from "vue";
 import {data} from "autoprefixer";
+import TextInput from "@/Components/TextInput.vue";
+import InputError from "@/Components/InputError.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import InputLabel from "@/Components/InputLabel.vue";
 
 defineProps({
     canLogin: {
@@ -24,7 +30,12 @@ defineProps({
         type: Object
     }
 });
-let selected = '';
+
+    const selected = ref(null);
+const selectedData = reactive({
+    data: null
+});
+
 function onChange(node) {
     getNodeData(node)
  console.log(node.name);
@@ -37,7 +48,7 @@ function getNodeData(node) {
     })
         .then(function (response) {
             console.log(response.data);
-            selected = response.data
+            selectedData.data = response.data
         })
         .catch(function (error) {
             console.log(error);
@@ -46,6 +57,19 @@ function getNodeData(node) {
             // always executed
         });
 }
+const form = useForm({
+    name: '',
+    type: '',
+    height: '',
+    parent_node_id: '',
+    extra: '',
+});
+
+const submit = () => {
+    form.post(route('nodes.create'), {
+        onFinish: () => form.reset('name', 'type', 'height', 'parent_node_id', 'extra'),
+    });
+};
 
 </script>
 
@@ -55,6 +79,7 @@ function getNodeData(node) {
     <div
         class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white"
     >
+
         <div v-if="canLogin" class="sm:fixed sm:top-0 sm:right-0 p-6 text-right">
             <Link
                 v-if="$page.props.auth.user"
@@ -76,8 +101,14 @@ function getNodeData(node) {
                     class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
                 >Register</Link
                 >
+                    <Link
+                        :href="route('nodes')"
+                        class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                    >Nodes</Link
+                    >
             </template>
         </div>
+
 
         <div class="max-w-7xl mx-auto p-6 lg:p-8">
             <div class="flex justify-center">
@@ -95,6 +126,99 @@ function getNodeData(node) {
             </div>
 
             <div class="mt-16">
+
+                <div
+                    class="mb-4 scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                >
+                    <div>
+                        <div class="max-w-7xl">
+
+
+                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Create Node</h2>
+
+                            <form @submit.prevent="submit">
+                                <div>
+                                    <InputLabel for="name" value="Name" />
+
+                                    <TextInput
+                                        id="name"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.name"
+                                        required
+                                        autofocus
+                                        autocomplete="name"
+                                    />
+
+                                    <InputError class="mt-2" :message="form.errors.name" />
+                                </div>
+
+                                <div class="mt-4">
+                                    <InputLabel for="type" value="Type" />
+
+                                    <select v-model="form.type">
+                                        <option disabled value="">Please select one</option>
+                                        <option value="corporation">Corporation</option>
+                                        <option value="building">Building</option>
+                                        <option value="property">Property</option>
+                                    </select>
+
+                                    <InputError class="mt-2" :message="form.errors.type" />
+                                </div>
+
+                                <div class="mt-4">
+                                    <InputLabel for="height" value="Height" />
+
+                                    <TextInput
+                                        id="height"
+                                        type="number"
+                                        class="mt-1 block w-full"
+                                        v-model="form.height"
+                                        required
+                                    />
+
+                                    <InputError class="mt-2" :message="form.errors.password" />
+                                </div>
+
+                                <div class="mt-4">
+                                    <InputLabel for="parent_node_id" value="Parent Node Id" />
+
+                                    <TextInput
+                                        id="parent_node_id"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.parent_node_id"
+
+                                    />
+
+                                    <InputError class="mt-2" :message="form.errors.parent_node_id" />
+                                </div>
+                                <div class="mt-4">
+                                    <InputLabel for="extra" value="extra" />
+
+                                    <TextInput
+                                        id="extra"
+                                        type="number"
+                                        class="mt-1 block w-full"
+                                        v-model="form.extra"
+                                    />
+
+                                    <InputError class="mt-2" :message="form.errors.password" />
+                                </div>
+                                <div class="flex items-center justify-end mt-4">
+
+
+                                    <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                        Create
+                                    </PrimaryButton>
+                                </div>
+
+                            </form>
+
+
+                        </div>
+                    </div>
+                </div>
                     <div
                         class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
@@ -116,6 +240,10 @@ function getNodeData(node) {
 
                                 <div class="mt-6">
                                     {{selected}}
+                                </div>
+
+                                <div class="mt-6">
+                                    {{selectedData}}
                                 </div>
                         </div>
                     </div>

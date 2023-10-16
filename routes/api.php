@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::post('/nodes/create', [\App\Http\Controllers\NodeController::class, 'addNewNode'])->name('nodes.create');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

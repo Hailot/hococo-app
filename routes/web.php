@@ -26,9 +26,8 @@ Route::get('/', function () {
 });
 
 Route::get('/nodes', [\App\Http\Controllers\NodeController::class, 'index'])->name('nodes');
-Route::get('/nodes/getnode', [\App\Http\Controllers\NodeController::class, 'getAllChildNodesFromNode'])->name('nodes');
-Route::post('/nodes/create', [\App\Http\Controllers\NodeController::class, 'addNewNode'])->name('nodes');
-Route::get('/nodes/update', [\App\Http\Controllers\NodeController::class, 'changeParentNodeOnNode'])->name('nodes');
+Route::get('/nodes/getnode', [\App\Http\Controllers\NodeController::class, 'getAllChildNodesFromNode'])->name('nodes.get');
+Route::get('/nodes/update', [\App\Http\Controllers\NodeController::class, 'changeParentNodeOnNode'])->name('nodes.update');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

@@ -28,19 +28,17 @@ class NodeController extends Controller
 
     /**
      * @param Request $request
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function addNewNode(Request $request) : Response
+    public function addNewNode(Request $request) : \Illuminate\Http\JsonResponse
     {
-
         $validated = $request->validate([
-            'name' => 'required|unique:node|max:255',
+            'name' => 'required|unique:nodes|max:255',
             'parent_node_id' => 'sometimes',
             'type' => 'required',
-            'extra' => 'sometimes|number',
-            'height' => 'required|number'
+            'extra' => 'sometimes',
+            'height' => 'required'
         ]);
-
         //Should have validation on parent node rules from endpoint 3
 
         Node::create([
@@ -50,7 +48,7 @@ class NodeController extends Controller
             'extra' => $validated['extra'],
             'height' => $validated['height']
         ]);
-        return response('created node');
+        return response()->json('created node');
     }
 
     /**
