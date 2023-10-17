@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::post('/nodes/create', [\App\Http\Controllers\NodeController::class, 'addNewNode'])->name('nodes.create');
+Route::patch('/nodes/update', [\App\Http\Controllers\NodeController::class, 'changeParentNodeOnNode'])->name('nodes.update');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

@@ -15,7 +15,7 @@ class NodeController extends Controller
 
     public function index() : \Inertia\Response
     {
-        $nodes = Node::whereIn('type',['corporation','building'])->get();
+        $nodes = Node::all();
         return Inertia::render('Nodes', [
             'canLogin' => true,
             'canRegister' => true,

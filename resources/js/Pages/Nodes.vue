@@ -1,14 +1,12 @@
 <script setup>
 import {Head, Link, useForm} from '@inertiajs/vue3';
-import {ref} from "vue";
-import {reactive} from "vue";
-import {data} from "autoprefixer";
+import {computed, ref, reactive} from "vue";
 import TextInput from "@/Components/TextInput.vue";
 import InputError from "@/Components/InputError.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 
-defineProps({
+const props = defineProps({
     canLogin: {
         type: Boolean,
     },
@@ -28,18 +26,41 @@ defineProps({
     },
     selected: {
         type: Object
-    }
+    },
+
 });
 
-    const selected = ref(null);
+const selected = ref(null);
+const selectedForUpdate = ref(null);
+const selectedForUpdateParent = ref(null)
 const selectedData = reactive({
     data: null
 });
+const updateNodeType = ref('');
+const nodesForUpdate = computed(() => {
+    let tempNodes = props.nodes
+
+    tempNodes = tempNodes.filter((node) => {
+        if (node.type !== updateNodeType.value) {
+            if (updateNodeType.value === 'building' && node.type === 'property') {
+
+            } else {
+                return node;
+            }
+        }
+    })
+    return tempNodes;
+})
 
 function onChange(node) {
     getNodeData(node)
- console.log(node.name);
+    console.log(node.name);
 }
+
+function onSelectedForUpdate(node) {
+    updateNodeType.value = node.type;
+}
+
 function getNodeData(node) {
     axios.get('/nodes/getnode', {
         params: {
@@ -57,6 +78,7 @@ function getNodeData(node) {
             // always executed
         });
 }
+
 const form = useForm({
     name: '',
     type: '',
@@ -71,10 +93,28 @@ const submit = () => {
     });
 };
 
+function updateParent() {
+    let data = {
+        node_id: selectedForUpdate.value.id,
+        new_parent_node_id: selectedForUpdateParent.value.id,
+        _method: 'patch'                   // <== add this field
+    }
+
+    console.log(selectedForUpdate.value)
+    console.log(selectedForUpdateParent.value)
+    axios.post(route('nodes.update'), data)
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
 </script>
 
 <template>
-    <Head title="Welcome" />
+    <Head title="Welcome"/>
 
     <div
         class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white"
@@ -85,27 +125,31 @@ const submit = () => {
                 v-if="$page.props.auth.user"
                 :href="route('dashboard')"
                 class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-            >Dashboard</Link
+            >Dashboard
+            </Link
             >
 
             <template v-else>
                 <Link
                     :href="route('login')"
                     class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                >Log in</Link
+                >Log in
+                </Link
                 >
 
                 <Link
                     v-if="canRegister"
                     :href="route('register')"
                     class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                >Register</Link
+                >Register
+                </Link
                 >
-                    <Link
-                        :href="route('nodes')"
-                        class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                    >Nodes</Link
-                    >
+                <Link
+                    :href="route('nodes')"
+                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                >Nodes
+                </Link
+                >
             </template>
         </div>
 
@@ -138,7 +182,7 @@ const submit = () => {
 
                             <form @submit.prevent="submit">
                                 <div>
-                                    <InputLabel for="name" value="Name" />
+                                    <InputLabel for="name" value="Name"/>
 
                                     <TextInput
                                         id="name"
@@ -150,11 +194,11 @@ const submit = () => {
                                         autocomplete="name"
                                     />
 
-                                    <InputError class="mt-2" :message="form.errors.name" />
+                                    <InputError class="mt-2" :message="form.errors.name"/>
                                 </div>
 
                                 <div class="mt-4">
-                                    <InputLabel for="type" value="Type" />
+                                    <InputLabel for="type" value="Type"/>
 
                                     <select v-model="form.type">
                                         <option disabled value="">Please select one</option>
@@ -163,11 +207,11 @@ const submit = () => {
                                         <option value="property">Property</option>
                                     </select>
 
-                                    <InputError class="mt-2" :message="form.errors.type" />
+                                    <InputError class="mt-2" :message="form.errors.type"/>
                                 </div>
 
                                 <div class="mt-4">
-                                    <InputLabel for="height" value="Height" />
+                                    <InputLabel for="height" value="Height"/>
 
                                     <TextInput
                                         id="height"
@@ -177,11 +221,11 @@ const submit = () => {
                                         required
                                     />
 
-                                    <InputError class="mt-2" :message="form.errors.password" />
+                                    <InputError class="mt-2" :message="form.errors.password"/>
                                 </div>
 
                                 <div class="mt-4">
-                                    <InputLabel for="parent_node_id" value="Parent Node Id" />
+                                    <InputLabel for="parent_node_id" value="Parent Node Id"/>
 
                                     <TextInput
                                         id="parent_node_id"
@@ -191,10 +235,10 @@ const submit = () => {
 
                                     />
 
-                                    <InputError class="mt-2" :message="form.errors.parent_node_id" />
+                                    <InputError class="mt-2" :message="form.errors.parent_node_id"/>
                                 </div>
                                 <div class="mt-4">
-                                    <InputLabel for="extra" value="extra" />
+                                    <InputLabel for="extra" value="extra"/>
 
                                     <TextInput
                                         id="extra"
@@ -203,12 +247,13 @@ const submit = () => {
                                         v-model="form.extra"
                                     />
 
-                                    <InputError class="mt-2" :message="form.errors.password" />
+                                    <InputError class="mt-2" :message="form.errors.password"/>
                                 </div>
                                 <div class="flex items-center justify-end mt-4">
 
 
-                                    <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                    <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }"
+                                                   :disabled="form.processing">
                                         Create
                                     </PrimaryButton>
                                 </div>
@@ -219,11 +264,11 @@ const submit = () => {
                         </div>
                     </div>
                 </div>
-                    <div
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="max-w-7xl">
+                <div
+                    class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                >
+                    <div>
+                        <div class="max-w-7xl">
 
 
                             <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Nodes</h2>
@@ -232,22 +277,62 @@ const submit = () => {
                                 please select which item you want to see
 
                             </p>
-                                <select v-model="selected" @change="onChange(selected)">
-                                    <option disabled value="">Please select one</option>
-                                    <option v-for="node in nodes" v-bind:value="node">{{ node.name}}</option>
+                            <select v-model="selected" @change="onChange(selected)">
+                                <option disabled value="">Please select one</option>
+                                <option v-for="node in nodes" v-bind:value="node">{{ node.name }}</option>
 
-                                </select>
+                            </select>
 
-                                <div class="mt-6">
-                                    {{selected}}
-                                </div>
+                            <div class="mt-6">
+                                {{ selected }}
+                            </div>
 
-                                <div class="mt-6">
-                                    {{selectedData}}
-                                </div>
+                            <div class="mt-6">
+                                {{ selectedData }}
+                            </div>
                         </div>
                     </div>
+                </div>
+                <div
+                    class="mb-4 scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                >
+                    <div>
+                        <div class="max-w-7xl">
+
+
+                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Update Node</h2>
+
+                            <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                                please select which item you want to update parent for
+
+                            </p>
+                            <select v-model="selectedForUpdate" @change="onSelectedForUpdate(selectedForUpdate)">
+                                <option disabled value="">Please select one</option>
+                                <option v-for="node in nodes" v-bind:value="node">{{ node.name }}</option>
+
+                            </select>
+
+                            <div class="mt-6">
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                                    please select which item you want to have as new parent
+
+                                </p>
+                                <select v-model="selectedForUpdateParent">
+                                    <option disabled value="">Please select one</option>
+                                    <option v-for="node in nodesForUpdate" v-bind:value="node">{{ node.name }}</option>
+
+                                </select>
+                            </div>
+                            <div class="mt-2">
+                                <PrimaryButton class="ml-4" @click="updateParent">
+                                    Update
+                                </PrimaryButton>
+                            </div>
+
+                        </div>
                     </div>
+                </div>
+
 
             </div>
             <div class="flex justify-center mt-16 px-6 sm:items-center sm:justify-between">
@@ -265,6 +350,7 @@ const submit = () => {
 .bg-dots-darker {
     background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(0,0,0,0.07)'/%3E%3C/svg%3E");
 }
+
 @media (prefers-color-scheme: dark) {
     .dark\:bg-dots-lighter {
         background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(255,255,255,0.07)'/%3E%3C/svg%3E");
